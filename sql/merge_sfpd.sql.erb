@@ -1,30 +1,49 @@
-MERGE INTO OUT_INCIDENTS a
-    USING JSONINCIDENTS b
-    ON a.IncidntNum = b.IncidntNumber
+MERGE INTO sfpd_out a
+    USING sfpd_tmp b
+    ON a.IncidntNum = b.IncidntNum
 WHEN MATCHED THEN
     UPDATE SET
+        IncidntNum = b.IncidntNum,
         Category = b.Category,
-        Descript = b.Description,
-        PDDistrict = b.PDDistrict,
-        IncidentDummy = b.IncidentDummy,
-        GeoLocationID = b.XY,
-        DateVal = RIGHT(b.Incdt_Date,4) || '-' || LEFT(b.Incdt_Date, 2) || '-' || SUBSTRING(b.Incdt_Date, 4,2)
+        Description = b.Description,
+        DayOfWeek = b.DayOfWeek,
+        DateTime = b.DateTime,
+        Time = b.Time,
+        PdDistrict = b.PdDistrict,
+        Resolution = b.Resolution,
+        Location = b.Location,
+        X = b.X,
+        Y = b.Y,
+        XY = b.XY,
+        dummy = b.dummy
 WHEN NOT MATCHED THEN
     INSERT(
         IncidntNum,
         Category,
-        Descript,
-        PDDistrict,
-        IncidentDummy,
-        GeoLocationID,
-        DateVal
+        Description,
+        DayOfWeek,
+        DateTime,
+        Time,
+        PdDistrict,
+        Resolution,
+        Location,
+        X,
+        Y,
+        XY,
+        dummy
     )
     VALUES(
-        b.IncidntNumber,
+        b.IncidntNum,
         b.Category,
         b.Description,
-        b.PDDistrict,
-        b.IncidentDummy,
+        b.DayOfWeek,
+        b.DateTime,
+        b.Time,
+        b.PdDistrict,
+        b.Resolution,
+        b.Location,
+        b.X,
+        b.Y,
         b.XY,
-        RIGHT(b.Incdt_Date,4) || '-' || LEFT(b.Incdt_Date, 2) || '-' || SUBSTRING(b.Incdt_Date, 4,2)
+        b.dummy
     );

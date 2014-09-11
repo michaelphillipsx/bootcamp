@@ -1,21 +1,16 @@
-MERGE INTO OUT_GEOLOCATION a
-    USING JSONLOCATIONS b
-    ON a.geolocationid = b.geolocationid
+MERGE INTO locations_out a
+    USING locations_tmp b
+    ON a.XY = b.XY
 WHEN MATCHED THEN
     UPDATE SET
-        Latitude = b.Latitude,
-        Longitude = b.Longitude,
+        XY = b.XY,
         Neighborhood = b.Neighborhood
 WHEN NOT MATCHED THEN
     INSERT(
-        GeoLocationID,
-        Latitude,
-        Longitude,
+        XY,
         Neighborhood
     )
     VALUES(
-        b.geolocationid,
-        b.Latitude,
-        b.Longitude,
+        b.XY,
         b.Neighborhood
     );
