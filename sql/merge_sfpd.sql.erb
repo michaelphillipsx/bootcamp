@@ -1,0 +1,30 @@
+MERGE INTO OUT_INCIDENTS a
+    USING JSONINCIDENTS b
+    ON a.IncidntNum = b.IncidntNumber
+WHEN MATCHED THEN
+    UPDATE SET
+        Category = b.Category,
+        Descript = b.Description,
+        PDDistrict = b.PDDistrict,
+        IncidentDummy = b.IncidentDummy,
+        GeoLocationID = b.XY,
+        DateVal = RIGHT(b.Incdt_Date,4) || '-' || LEFT(b.Incdt_Date, 2) || '-' || SUBSTRING(b.Incdt_Date, 4,2)
+WHEN NOT MATCHED THEN
+    INSERT(
+        IncidntNum,
+        Category,
+        Descript,
+        PDDistrict,
+        IncidentDummy,
+        GeoLocationID,
+        DateVal
+    )
+    VALUES(
+        b.IncidntNumber,
+        b.Category,
+        b.Description,
+        b.PDDistrict,
+        b.IncidentDummy,
+        b.XY,
+        RIGHT(b.Incdt_Date,4) || '-' || LEFT(b.Incdt_Date, 2) || '-' || SUBSTRING(b.Incdt_Date, 4,2)
+    );
