@@ -32,6 +32,8 @@ class Bootcamp
   SQL_DIR = File.join(File.dirname(__FILE__), '..', 'sql')
   SQL_CREATE_LOCATIONS = File.join(SQL_DIR, 'create_locations.sql.erb')
   SQL_CREATE_SFPD = File.join(SQL_DIR, 'create_sfpd.sql.erb')
+  SQL_MERGE_LOCATIONS = File.join(SQL_DIR, 'merge_locations.sql.erb')
+  SQL_MERGE_SFPD = File.join(SQL_DIR, 'merge_sfpd.sql.erb')
   SQL_INSERT_LOCATION = File.join(SQL_DIR, 'insert_location.sql.erb')
   SQL_INSERT_SFPD = File.join(SQL_DIR, 'insert_sfpd.sql.erb')
 
@@ -273,11 +275,13 @@ class Bootcamp
 
       # Insert into locations, pass lookup result into template
       run_dss_script(SQL_INSERT_LOCATION, res)
+      # run_dss_script(SQL_MERGE_LOCATIONS)
 
       # Insert into sfpd
       res = inc['properties'].merge(:table => TABLE_SFPD)
       pp res
       run_dss_script(SQL_INSERT_SFPD, res)
+      # run_dss_script(SQL_MERGE_SFPD)
     end
   end
 
