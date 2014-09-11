@@ -3,17 +3,11 @@
 require 'csv'
 require 'dstk'
 require 'fileutils'
-require 'jdbc/dss'
 require 'json'
 require 'pp'
 require 'rest-client'
-require 'sequel'
 
 require_relative 'erb_helper'
-
-# register the DSS driver - won't be necessary after
-Jdbc::DSS.load_driver
-Java.com.gooddata.dss.jdbc.driver.DssDriver
 
 # Bootcamp implementation class
 class Bootcamp
@@ -55,6 +49,14 @@ class Bootcamp
   end
 
   def init_dss
+    # Load gem required for ADS
+    require 'jdbc/dss'
+    require 'sequel'
+
+    # Initialize JDBC ADS driver
+    Jdbc::DSS.load_driver
+    Java.com.gooddata.dss.jdbc.driver.DssDriver
+
     puts "Initializing DSS connection to #{DSS_URL} as user #{DSS_USERNAME}"
     @dss = Sequel.connect DSS_URL, :username => DSS_USERNAME, :password => DSS_PASSWORD
 
@@ -159,7 +161,9 @@ class Bootcamp
     # extract_data
 
     # Process files
-    process_files
+    # process_files
+
+    run_sfpd(argv)
   end
 
   def run_import(argv = ARGV)
@@ -189,9 +193,7 @@ class Bootcamp
   end
 
   def run_dss_script(path, ctx = {})
-    sql = ErbHelper.new.process(path, ctx)
-    puts sql
-    dss.run sql
+    run_sql_script(path, dss, ctx)
   end
 
   def run_latest(argv = ARGV)
@@ -235,6 +237,16 @@ class Bootcamp
       pp res
       run_dss_script(SQL_INSERT_SFPD, res)
     end
+  end
+
+  def run_sql_script(path, adapter = dss, ctx = {})
+    sql = ErbHelper.new.process(path, ctx)
+    puts sql
+    adapter.run sql
+  end
+
+  def run_sqlite_scipt(path, adapter = dss, ctx = {})
+    raise 'Not implemented yet!'
   end
 end
 
