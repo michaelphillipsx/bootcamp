@@ -1,0 +1,30 @@
+INSERT INTO <%= ctx[:table] %>(
+    IncidntNum,
+    Category,
+    Description,
+    DayOfWeek,
+    DateTime,
+    Time,
+    PdDistrict,
+    Resolution,
+    Location,
+    X,
+    Y,
+    XY,
+    dummy
+)
+VALUES(
+    <%= ctx['IncidntNum'] %>,
+    '<%= ctx['Category'] %>',
+    '<%= ctx['Descript'] %>',
+    '<%= ctx['DayOfWeek'] %>',
+    '<%= ctx['Date'] %>',
+    '<%= ctx['Time'] %>',
+    '<%= ctx['PdDistrict'] %>',
+    '<%= ctx['Resolution'] %>',
+    '<%= ctx['Location'] %>',
+    '<%= ctx['X'] %>',
+    '<%= ctx['Y'] %>',
+    '<%= ctx['Y'] %>;<%= ctx['X'] %>',
+    1
+);

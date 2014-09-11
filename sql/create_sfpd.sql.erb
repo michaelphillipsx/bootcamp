@@ -1,0 +1,17 @@
+--  DROP TABLE IF EXISTS <%= ctx[:table] %>;
+
+CREATE TABLE IF NOT EXISTS <%= ctx[:table] %>(
+    IncidntNum integer,
+    Category varchar(255),
+    Description varchar(255),
+    DayOfWeek varchar(255),
+    DateTime varchar(255),
+    Time varchar(255),
+    PdDistrict varchar(255),
+    Resolution varchar(255),
+    Location varchar(255),
+    X varchar(255),
+    Y varchar(255),
+    XY varchar(255),
+    dummy integer
+);

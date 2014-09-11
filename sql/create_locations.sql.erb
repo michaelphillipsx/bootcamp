@@ -1,0 +1,6 @@
+-- DROP TABLE IF EXISTS <%= ctx[:table] %>;
+
+CREATE TABLE IF NOT EXISTS <%= ctx[:table] %>(
+    Neighborhood varchar(255),
+    XY varchar(511)
+);
