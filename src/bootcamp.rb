@@ -1,5 +1,7 @@
 #! /usr/bin/env ruby
 
+# Output of this script - https://gist.github.com/korczis/998353bd31fad18344fe
+
 require 'csv'
 require 'dstk'
 require 'fileutils'
