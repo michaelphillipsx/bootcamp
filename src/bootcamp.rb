@@ -39,16 +39,26 @@ class Bootcamp
   attr_reader :db
   attr_reader :dss
 
+  # Constructor of Bootcamp class
   def initialize
+    # Create temporary data directory
     create_data_dir
-    @dstk = DSTK::DSTK.new
 
-    init_dss
+    # Init connection to ADS
+    init_ads
 
+    # Initialize Data science toolkit
+    init_dstk
+
+    # Init connection to SQLite
     # init_sqlite3
   end
 
-  def init_dss
+  # Initialize ADS connection
+  # - Load jdbc gem
+  # - Load sequel
+  # - Connect using credentials from environment variables
+  def init_ads
     # Load gem required for ADS
     require 'jdbc/dss'
     require 'sequel'
@@ -64,6 +74,13 @@ class Bootcamp
     run_dss_script(SQL_CREATE_SFPD, table: TABLE_SFPD)
   end
 
+  # Initialize connection to Data Science ToolKit
+  def init_dstk
+    @dstk = DSTK::DSTK.new
+  end
+
+  # Initialize connection to SQLite database
+  # - Used for some local caching
   def init_sqlite3
     require 'sqlite3'
     @db = SQLite3::Database.open(CACHE_PATH)
@@ -71,6 +88,9 @@ class Bootcamp
     @db.execute 'CREATE INDEX IF NOT EXISTS coordinates_idx ON coordinates (lng, lat);'
   end
 
+  # Direct reverse geolookup using DSTK
+  # @arg lng Longitude
+  # @arg lat Latitude
   def noncached_lookup(lng, lat)
     res = dstk.coordinates2politics([lat, lng])
     nbh = res[0]['politics'] ? res[0]['politics'].select { |r| r['friendly_type'] == 'neighborhood' } : nil
@@ -83,6 +103,9 @@ class Bootcamp
     }
   end
 
+  # Reverse geolookup using SQLite cache first
+  # @arg lng Longitude
+  # @arg lat Latitude
   def cached_lookup(lng, lat)
     res = @db.execute "SELECT * FROM coordinates where lng = #{lng.to_f} AND lat = #{lat.to_f}"
     if res.empty?
@@ -103,6 +126,7 @@ class Bootcamp
     end
   end
 
+  # Create data dir for SQLite databse
   def create_data_dir
     unless File.exists?(DATA_DIR)
       puts 'Creating data directory ...'
@@ -110,6 +134,7 @@ class Bootcamp
     end
   end
 
+  # Download all zipped SFPD data
   def download_data
     puts 'Downloading data ...'
 
@@ -117,15 +142,19 @@ class Bootcamp
     system cmd
   end
 
+  # Extract downloaded SFPD data
   def extract_data
     cmd = "unzip -d #{DATA_DIR} -o #{DATA_PATH}"
     system cmd
   end
 
+  # Get latest incidents
+  # @return parsed JSON
   def get_latest_incidents
     JSON.parse(RestClient.get LATEST_INCIDENTS_URL)
   end
 
+  # Process one (big) CSV file with SFPD incident
   def process_file(path)
     CSV.open(path, {:headers => true}) do |csv|
       csv.each do |row|
@@ -135,24 +164,32 @@ class Bootcamp
     end
   end
 
+  # Process all (big) CSV files with incidents
   def process_files
     Dir[DATA_DIR + '/**/*.csv'].each do |file|
       process_file(file)
     end
   end
 
+  # Application entry point
   def run(argv = ARGV)
+    # Run all if no argument was passed
     return run_all(argv) if argv.length == 0
 
+    # Run import if argument 'import' was passed
     return run_import(argv) if argv[0] == 'import'
 
+    # Fetch latest incidents if argument 'latest' was passed
     return run_latest(argv) if argv[0] == 'latest'
 
+    # Run lookup for lng and lat if argument 'lookup' was passed
     return run_lookup(argv) if argv[0] == 'lookup'
 
+    # Run sfpd import of latest incidents if argument 'sfpd' was passed
     return run_sfpd(argv) if argv[0] == 'sfpd'
   end
 
+  # Run all steps
   def run_all(argv = ARGV)
     # First download data
     # download_data
@@ -166,6 +203,7 @@ class Bootcamp
     run_sfpd(argv)
   end
 
+  # Import existing locations into SQLite cache
   def run_import(argv = ARGV)
     buffer = []
     CSV.open(IMPORT_PATH, {:headers => true}) do |csv|
@@ -192,14 +230,17 @@ class Bootcamp
     end
   end
 
+  # Run ADS script
   def run_dss_script(path, ctx = {})
     run_sql_script(path, dss, ctx)
   end
 
+  # Run command which fetches latest incidents
   def run_latest(argv = ARGV)
     pp get_latest_incidents
   end
 
+  # Lookup for coordinates passed
   def run_lookup(argv = ARGV)
     lng = argv[1].to_f
     lat = argv[2].to_f
@@ -209,6 +250,7 @@ class Bootcamp
     puts "#{lng},#{lat},#{nbh.first['name']}"
   end
 
+  # Run command which processes new incidents from JSON fetched
   def run_sfpd(argv = ARGV)
     puts 'Getting JSON with latest incidents'
     incidents = get_latest_incidents
@@ -239,17 +281,20 @@ class Bootcamp
     end
   end
 
+  # Run SQL script (template) via SQL adapter specified
   def run_sql_script(path, adapter = dss, ctx = {})
     sql = ErbHelper.new.process(path, ctx)
     puts sql
     adapter.run sql
   end
 
+  # Run SQLite script using SQLite adapter
   def run_sqlite_scipt(path, adapter = dss, ctx = {})
     raise 'Not implemented yet!'
   end
 end
 
+# Script entry-point when launched from commandline
 if __FILE__ == $PROGRAM_NAME
   bootcamp = Bootcamp.new
   bootcamp.run
